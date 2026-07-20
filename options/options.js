@@ -42,6 +42,10 @@ async function init() {
   // Update
   showUpdateIfAvailable();
   $('optUpdateDismiss').addEventListener('click', () => $('optUpdateCard').classList.add('hidden'));
+  $('optUpdateBtn').addEventListener('click', () => {
+    const url = $('optUpdateCard').dataset.updateUrl;
+    if (url) chrome.tabs.create({ url, active: true });
+  });
 }
 
 // ==================== Config ====================
@@ -376,11 +380,14 @@ async function onTestAi() {
 // ==================== Update ====================
 
 async function showUpdateIfAvailable() {
+  // Force recheck to avoid stale cache
   const resp = await chrome.runtime.sendMessage({ type: 'JT_CHECK_UPDATE' });
   if (!resp || !resp.hasUpdate || !resp.info) return;
+  const url = resp.info.url || '';
+  if (!url) return;
   $('optUpdateVersion').textContent = 'v' + resp.info.version;
   const body = (resp.info.body || '').replace(/\r/g, '').trim();
   $('optUpdateBody').textContent = body.length > 250 ? body.slice(0, 250) + '…' : body;
-  $('optUpdateLink').href = resp.info.url || '#';
+  $('optUpdateCard').dataset.updateUrl = url;
   $('optUpdateCard').classList.remove('hidden');
 }
