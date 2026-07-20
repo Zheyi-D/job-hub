@@ -13,7 +13,6 @@
   },
 
   "permissions": [
-    "alarms",
     "sidePanel",
     "storage",
     "activeTab",

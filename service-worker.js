@@ -1,6 +1,6 @@
 // ================================================================
 // JobHub — Service Worker
-// 职责：Side Panel 生命周期、JT_* 消息路由、飞书 API 调用、版本更新检查
+// 职责：Side Panel 生命周期、JT_* 消息路由、飞书 API 调用
 // ================================================================
 import { createRecord, listFields, clearTokenCache } from './lib/feishu-api.js';
 import {
@@ -8,8 +8,7 @@ import {
   getHistory, normalizeUrl
 } from './lib/storage.js';
 import {
-  DEFAULT_FIELD_MAP, REQUIRED_FIELDS, EXPECTED_FIELD_TYPES, FIELD_TYPE_NAMES,
-  STORAGE_KEYS, UPDATE_REPO_API, UPDATE_CHECK_INTERVAL_MIN
+  DEFAULT_FIELD_MAP, REQUIRED_FIELDS, EXPECTED_FIELD_TYPES, FIELD_TYPE_NAMES, STORAGE_KEYS
 } from './lib/constants.js';
 
 // 点击工具栏图标打开侧边栏
@@ -17,7 +16,6 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => 
 
 // ---------- 消息路由 ----------
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  // 只处理 JT_ 前缀的消息；FILL/CHECK_FOCUS 走 sidepanel→content 直连
   if (!message.type || !message.type.startsWith('JT_')) return false;
 
   handle(message)
@@ -32,8 +30,6 @@ async function handle(message) {
     case 'JT_SAVE_LOCAL':     return saveLocal(message.record);
     case 'JT_TEST_CONNECTION': return testConnection(message.config);
     case 'JT_RETRY_SYNC':     return retrySync(message.historyId);
-    case 'JT_CHECK_UPDATE':   return checkUpdateAndRespond();
-    case 'JT_DISMISS_UPDATE': return dismissUpdate(message.version);
     default: return { ok: false, error: `未知消息类型：${message.type}` };
   }
 }
@@ -128,64 +124,3 @@ async function testConnection(rawConfig) {
     error: missing.length ? `连接成功，但表格缺少字段：${missing.join('、')}` : ''
   };
 }
-
-// ---------- 版本更新检测 ----------
-function compareVersions(a, b) {
-  const pa = (a || '0.0.0').split('.').map(Number);
-  const pb = (b || '0.0.0').split('.').map(Number);
-  for (let i = 0; i < 3; i++) {
-    if ((pa[i] || 0) > (pb[i] || 0)) return 1;
-    if ((pa[i] || 0) < (pb[i] || 0)) return -1;
-  }
-  return 0;
-}
-
-async function checkUpdateCore() {
-  try {
-    const resp = await fetch(UPDATE_REPO_API, { headers: { Accept: 'application/vnd.github+json' } });
-    if (!resp.ok) return null;
-    const release = await resp.json();
-    const remoteVer = (release.tag_name || '').replace(/^v/, '');
-    const localVer = chrome.runtime.getManifest().version;
-    if (compareVersions(remoteVer, localVer) > 0) {
-      const info = {
-        version: remoteVer,
-        tag: release.tag_name,
-        body: release.body || '',
-        url: release.html_url || '',
-        checkedAt: Date.now()
-      };
-      await chrome.storage.local.set({ [STORAGE_KEYS.updateInfo]: info });
-      chrome.action.setBadgeText({ text: '●' });
-      chrome.action.setBadgeBackgroundColor({ color: '#ffcc00' });
-      return info;
-    } else {
-      chrome.action.setBadgeText({ text: '' });
-      await chrome.storage.local.remove(STORAGE_KEYS.updateInfo);
-      return null;
-    }
-  } catch {
-    return null;
-  }
-}
-
-async function checkUpdate() { await checkUpdateCore(); }
-
-async function checkUpdateAndRespond() {
-  const info = await checkUpdateCore();
-  return info
-    ? { ok: true, hasUpdate: true, info }
-    : { ok: true, hasUpdate: false, info: null };
-}
-
-async function dismissUpdate(version) {
-  await chrome.storage.session.set({ [STORAGE_KEYS.updateDismissed]: version });
-  return { ok: true };
-}
-
-// 启动检查 + 定时检查
-checkUpdate();
-chrome.alarms.create('jt-check-update', { periodInMinutes: UPDATE_CHECK_INTERVAL_MIN });
-chrome.alarms.onAlarm.addListener(alarm => {
-  if (alarm.name === 'jt-check-update') checkUpdate();
-});

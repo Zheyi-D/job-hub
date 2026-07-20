@@ -44,11 +44,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const { STORAGE_KEYS } = await import('../lib/constants.js');
     await chrome.storage.local.remove([
-      STORAGE_KEYS.config, STORAGE_KEYS.history, STORAGE_KEYS.updateInfo,
+      STORAGE_KEYS.config, STORAGE_KEYS.history,
       STORAGE_KEYS.profiles, STORAGE_KEYS.activeProfileId, 'af_ai_config'
     ]);
     await chrome.storage.session.remove([
-      STORAGE_KEYS.draft, STORAGE_KEYS.token, STORAGE_KEYS.updateDismissed
+      STORAGE_KEYS.draft, STORAGE_KEYS.token
     ]);
     document.getElementById('jhHelpModal').classList.add('hidden');
     // Reload current tab to pick up fresh default data

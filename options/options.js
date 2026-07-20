@@ -255,11 +255,11 @@ async function onResetAll() {
 
   // Clear all JobHub data
   await chrome.storage.local.remove([
-    STORAGE_KEYS.config, STORAGE_KEYS.history, STORAGE_KEYS.updateInfo,
+    STORAGE_KEYS.config, STORAGE_KEYS.history,
     STORAGE_KEYS.profiles, STORAGE_KEYS.activeProfileId
   ]);
   await chrome.storage.session.remove([
-    STORAGE_KEYS.draft, STORAGE_KEYS.token, STORAGE_KEYS.updateDismissed
+    STORAGE_KEYS.draft, STORAGE_KEYS.token
   ]);
 
   // Clear form fields
