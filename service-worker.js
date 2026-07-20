@@ -2,7 +2,7 @@
 // JobHub — Service Worker
 // 职责：Side Panel 生命周期、JT_* 消息路由、飞书 API 调用
 // ================================================================
-import { createRecord, listFields, clearTokenCache } from './lib/feishu-api.js';
+import { createRecord, listFields, listRecords, clearTokenCache } from './lib/feishu-api.js';
 import {
   getConfig, isConfigComplete, appendHistory, updateHistoryItem,
   getHistory, normalizeUrl
@@ -30,6 +30,7 @@ async function handle(message) {
     case 'JT_SAVE_LOCAL':     return saveLocal(message.record);
     case 'JT_TEST_CONNECTION': return testConnection(message.config);
     case 'JT_RETRY_SYNC':     return retrySync(message.historyId);
+    case 'JT_FETCH_REMOTE':   return fetchRemoteRecords();
     default: return { ok: false, error: `未知消息类型：${message.type}` };
   }
 }
@@ -123,4 +124,46 @@ async function testConnection(rawConfig) {
     typeWarnings,
     error: missing.length ? `连接成功，但表格缺少字段：${missing.join('、')}` : ''
   };
+}
+
+// ---------- 从飞书拉取全量记录（看板同步用） ----------
+async function fetchRemoteRecords() {
+  const config = await getConfig();
+  if (!isConfigComplete(config)) return { ok: false, error: '尚未完成飞书配置' };
+
+  const rawRecords = await listRecords(config);
+  const m = config.fieldMap;
+
+  // 反向映射：飞书列名 → 内部字段名
+  const reverseMap = {};
+  for (const key of Object.keys(m)) {
+    reverseMap[m[key]] = key;
+  }
+
+  // 解析飞书记录 → 本地 history 格式
+  const historyItems = rawRecords.map(r => {
+    const f = r.fields || {};
+    const urlField = f[m.link] || {};
+    const linkObj = typeof urlField === 'object' && urlField !== null ? urlField : {};
+
+    return {
+      id: crypto.randomUUID(),
+      company: String(f[m.company] || ''),
+      position: String(f[m.position] || ''),
+      appliedAt: (() => {
+        const v = f[m.appliedAt];
+        return typeof v === 'number' ? v : Date.now();
+      })(),
+      url: typeof linkObj.link === 'string' ? linkObj.link : '',
+      normalizedUrl: normalizeUrl(typeof linkObj.link === 'string' ? linkObj.link : ''),
+      linkText: typeof linkObj.text === 'string' ? linkObj.text : '',
+      statusValue: String(f[m.status] || '已投递'),
+      note: String(f[m.note] || ''),
+      syncState: 'synced',
+      recordId: r.record_id,
+      fromRemote: true
+    };
+  });
+
+  return { ok: true, history: historyItems, fetchedAt: Date.now() };
 }

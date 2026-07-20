@@ -1,15 +1,17 @@
 // ================================================================
-// JobHub — Data Dashboard Panel (求职数据看板 P0)
-// 纯 CSS 图表，零依赖。数据源：jt_history
+// JobHub — Data Dashboard Panel (求职数据看板)
+// 纯 CSS 图表，零依赖。数据源：本地 jt_history + 飞书远程同步
 // ================================================================
 import { getHistory } from '../lib/storage.js';
 import { STATUS_OPTIONS, INTERVIEW_STATUSES, CLOSED_STATUSES, DASHBOARD_COLORS } from '../lib/constants.js';
 
-let container;
+let container, currentHistory = [], syncInfo = null;
 
 // ============ Init / Destroy ============
 export async function init(containerEl) {
   container = containerEl;
+  currentHistory = await getHistory();
+  syncInfo = null;
   render();
 }
 
@@ -19,7 +21,7 @@ export function destroy() {
 
 // ============ Render ============
 async function render() {
-  const history = await getHistory();
+  const history = currentHistory;
 
   if (history.length === 0) {
     renderEmpty();
@@ -30,8 +32,18 @@ async function render() {
   const statusDist = computeStatusDist(history);
   const trend = computeTrend(history);
 
+  const syncInfoEl = syncInfo
+    ? `<span class="db-sync-status">已同步 · ${formatSyncTime(syncInfo.fetchedAt)}</span>`
+    : `<span class="db-sync-status db-sync-local">仅本地数据</span>`;
+
   container.innerHTML = `
-    <h2 class="section-title">📊 求职数据看板</h2>
+    <div class="db-header">
+      <h2 class="section-title" style="margin:0;border:none;padding:0;">📊 求职数据看板</h2>
+      <div class="db-header-actions">
+        ${syncInfoEl}
+        <button class="btn btn-sm" id="dbSyncBtn">🔄 同步飞书</button>
+      </div>
+    </div>
 
     <!-- Stat Cards -->
     <div class="db-stat-grid">
@@ -60,10 +72,20 @@ async function render() {
       </div>
     </div>
   `;
+
+  // Bind sync button
+  const syncBtn = container.querySelector('#dbSyncBtn');
+  if (syncBtn) {
+    syncBtn.addEventListener('click', doSync);
+  }
 }
 
 function renderEmpty() {
   container.innerHTML = `
+    <div class="db-header">
+      <h2 class="section-title" style="margin:0;border:none;padding:0;">📊 求职数据看板</h2>
+      <button class="btn btn-sm" id="dbSyncBtn">🔄 同步飞书</button>
+    </div>
     <div class="empty-state">
       <span class="empty-icon">📊</span>
       <span class="empty-title">还没有投递记录</span>
@@ -72,11 +94,64 @@ function renderEmpty() {
     </div>
   `;
 
-  container.querySelector('#dbGoTrack').addEventListener('click', async () => {
-    // Switch to job-tracker tab
+  const syncBtn = container.querySelector('#dbSyncBtn');
+  if (syncBtn) syncBtn.addEventListener('click', doSync);
+
+  const goTrack = container.querySelector('#dbGoTrack');
+  if (goTrack) goTrack.addEventListener('click', async () => {
     const { switchTab } = await import('./sidepanel.js');
     switchTab('job-tracker');
   });
+}
+
+// ============ Sync ============
+
+async function doSync() {
+  const syncBtn = container.querySelector('#dbSyncBtn');
+  if (syncBtn) {
+    syncBtn.disabled = true;
+    syncBtn.textContent = '⏳ 同步中…';
+  }
+
+  try {
+    const resp = await chrome.runtime.sendMessage({ type: 'JT_FETCH_REMOTE' });
+    if (resp && resp.ok && resp.history) {
+      // Merge: remote records + local-only records (not yet synced to feishu)
+      const localHistory = await getHistory();
+      const localOnly = localHistory.filter(h => h.syncState === 'local-only');
+
+      // Deduplicate local-only against remote (by URL)
+      const remoteUrls = new Set(resp.history.map(h => h.normalizedUrl).filter(Boolean));
+      const uniqueLocal = localOnly.filter(h => !remoteUrls.has(h.normalizedUrl));
+
+      // Remote first, then unique local
+      currentHistory = [...resp.history, ...uniqueLocal];
+      syncInfo = { fetchedAt: resp.fetchedAt };
+      render();
+    } else {
+      const msg = (resp && resp.error) || '同步失败';
+      if (syncBtn) {
+        syncBtn.disabled = false;
+        syncBtn.textContent = '🔄 同步飞书';
+      }
+      // Brief toast-like feedback via sync button
+      if (syncBtn) {
+        syncBtn.textContent = '❌ ' + msg;
+        setTimeout(() => { syncBtn.textContent = '🔄 同步飞书'; syncBtn.disabled = false; }, 2000);
+      }
+    }
+  } catch (err) {
+    if (syncBtn) {
+      syncBtn.disabled = false;
+      syncBtn.textContent = '🔄 重试';
+    }
+  }
+}
+
+function formatSyncTime(ts) {
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 // ============ Compute ============

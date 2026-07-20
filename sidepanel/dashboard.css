@@ -2,6 +2,33 @@
    JobHub — Dashboard Panel Styles (Neo-Brutalist, Pure CSS Charts)
    ================================================================ */
 
+/* Header */
+.db-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+.db-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Sync status */
+.db-sync-status {
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--green);
+  white-space: nowrap;
+}
+.db-sync-local {
+  color: var(--text-secondary);
+}
+
 /* Stat card grid */
 .db-stat-grid {
   display: grid;
