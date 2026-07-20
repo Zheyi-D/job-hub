@@ -1,0 +1,314 @@
+/* ================================================================
+   JobHub — Side Panel Common Styles (Neo-Brutalist)
+   ================================================================ */
+
+/* Side panel root */
+html, body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Panels fill remaining height */
+.tab-panel {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px;
+}
+.tab-panel.active {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .tab-panel {
+    padding: 16px;
+  }
+}
+
+/* Tab bar — sticky at top */
+#tabBar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+/* ==================== Footer ==================== */
+
+.jh-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-top: var(--border);
+  background: var(--bg-card);
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+.jh-footer a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.jh-footer a:hover {
+  background: var(--yellow);
+  color: var(--black);
+}
+.jh-footer-copy {
+  text-align: center;
+}
+.jh-footer-copy strong {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 11px;
+  color: var(--text);
+}
+@media (min-width: 768px) {
+  .jh-footer {
+    padding: 10px 16px;
+    font-size: 11px;
+    border-top: var(--border-desktop);
+  }
+}
+
+/* ==================== Modal (shared) ==================== */
+
+.rf-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.rf-modal-overlay.hidden { display: none; }
+
+.rf-modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: var(--border);
+  box-shadow: var(--shadow-lg);
+}
+.rf-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: var(--border);
+  background: var(--black);
+  color: var(--white);
+}
+.rf-modal-header h3 {
+  font-size: 16px;
+  margin: 0;
+}
+.rf-modal-body {
+  padding: 14px;
+}
+.rf-modal-body .field {
+  margin-bottom: 10px;
+}
+.rf-modal-body .opt-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+@media (min-width: 768px) {
+  .rf-modal {
+    border: var(--border-desktop);
+    box-shadow: 12px 12px 0 0 rgba(0,0,0,1);
+  }
+  .rf-modal-header {
+    border-bottom: var(--border-desktop);
+  }
+}
+
+/* Modal description */
+.rf-modal-desc {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+
+/* ==================== Help Page ==================== */
+
+.jh-help-body {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+}
+.jh-help-body h4 {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 14px;
+  margin: 16px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--black);
+}
+.jh-help-body p {
+  margin: 4px 0;
+}
+.jh-help-body code {
+  background: var(--yellow);
+  padding: 1px 4px;
+  font-size: 11px;
+  color: var(--black);
+}
+.jh-help-version {
+  margin-top: 16px !important;
+  padding-top: 8px;
+  border-top: 2px solid var(--black);
+  font-size: 11px !important;
+  color: var(--text-secondary) !important;
+}
+
+/* ==================== Scan Row + Beta Badge ==================== */
+
+.rf-scan-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.rf-beta-badge {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 10px;
+  padding: 2px 6px;
+  border: 2px solid var(--black);
+  background: var(--yellow);
+  color: var(--black);
+  letter-spacing: 0.05em;
+}
+
+/* ==================== Batch Fill Panel ==================== */
+
+.rf-batch-panel {
+  border: var(--border);
+  background: var(--bg-card);
+  box-shadow: var(--shadow);
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.rf-batch-panel.hidden { display: none; }
+.rf-batch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--blue);
+  color: var(--white);
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 13px;
+  border-bottom: var(--border);
+}
+.rf-batch-list { max-height: 220px; overflow-y: auto; padding: 6px 0; }
+.rf-batch-item { display: flex; align-items: center; gap: 8px; padding: 5px 12px; font-size: 12px; border-bottom: 1px solid var(--black); }
+.rf-batch-item:last-child { border-bottom: none; }
+.rf-batch-item .rf-batch-confidence { font-size: 18px; flex-shrink: 0; }
+.rf-batch-item .rf-batch-detail { flex: 1; overflow: hidden; }
+.rf-batch-item .rf-batch-field { font-family: var(--font-body); font-size: 10px; color: var(--text-secondary); }
+.rf-batch-item .rf-batch-value { font-family: var(--font-heading); font-weight: 700; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rf-batch-item.low-confidence { background: var(--yellow); color: var(--black); }
+.rf-batch-actions { display: flex; gap: 6px; padding: 8px 12px; border-top: var(--border); }
+@media (min-width: 768px) {
+  .rf-batch-panel { border: var(--border-desktop); box-shadow: var(--shadow-lg); }
+  .rf-batch-header { border-bottom: var(--border-desktop); }
+  .rf-batch-actions { border-top: var(--border-desktop); }
+}
+
+/* ==================== File Drop Zone ==================== */
+
+.rf-file-drop {
+  border: 3px dashed var(--black);
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: background var(--transition);
+}
+.rf-file-drop:hover,
+.rf-file-drop.drag-over {
+  background: var(--yellow);
+  color: var(--black);
+}
+
+/* ==================== AI Modal Sections ==================== */
+
+.rf-ai-section {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 2px dashed var(--black);
+}
+.rf-ai-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.rf-ai-section-title {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 14px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: var(--border);
+}
+
+/* ==================== AI Platform Buttons ==================== */
+
+.rf-ai-platforms {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.rf-ext-btn {
+  background: var(--yellow);
+  color: var(--black);
+  font-size: 13px;
+  padding: 10px 8px;
+}
+.rf-ext-btn:hover {
+  background: var(--black);
+  color: var(--white);
+}
+
+/* ==================== AI Prompt Area ==================== */
+
+.rf-ai-prompt {
+  margin: 10px 0;
+  border: var(--border);
+  background: var(--bg);
+  max-height: 150px;
+  overflow-y: auto;
+}
+.rf-ai-prompt pre {
+  font-family: var(--font-body);
+  font-size: 10px;
+  padding: 10px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+  color: var(--text);
+}
+.rf-ai-prompt.hidden { display: none; }

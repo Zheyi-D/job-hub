@@ -1,0 +1,162 @@
+/* ================================================================
+   JobHub — Dashboard Panel Styles (Neo-Brutalist, Pure CSS Charts)
+   ================================================================ */
+
+/* Stat card grid */
+.db-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+@media (min-width: 768px) {
+  .db-stat-grid {
+    gap: 12px;
+  }
+}
+
+/* Stat card */
+.db-stat-card {
+  border: var(--border);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.db-stat-card:first-child {
+  color: var(--white) !important;
+  background: var(--black) !important;
+}
+.db-stat-value {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 32px;
+  line-height: 1;
+}
+.db-stat-title {
+  font-family: var(--font-body);
+  font-size: 11px;
+  margin-top: 4px;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.db-stat-sub {
+  font-family: var(--font-body);
+  font-size: 10px;
+  margin-top: 2px;
+  opacity: 0.6;
+}
+@media (min-width: 768px) {
+  .db-stat-card {
+    border: var(--border-desktop);
+    box-shadow: var(--shadow-lg);
+    padding: 16px;
+  }
+  .db-stat-value {
+    font-size: 40px;
+  }
+}
+
+/* Chart title */
+.db-chart-title {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+/* Bar chart (status distribution) */
+.db-bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.db-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.db-bar-label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  width: 44px;
+  flex-shrink: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+.db-bar-track {
+  flex: 1;
+  height: 16px;
+  border: 2px solid var(--black);
+  background: var(--bg);
+}
+.db-bar-fill {
+  height: 100%;
+  transition: width 400ms ease-out;
+}
+.db-bar-count {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 12px;
+  width: 24px;
+  text-align: right;
+  flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  .db-bar-label { width: 52px; font-size: 12px; }
+  .db-bar-track { height: 20px; }
+}
+
+/* Trend chart (7-day columns) */
+.db-trend-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 120px;
+  padding: 0 4px;
+  border-bottom: 2px solid var(--black);
+}
+.db-trend-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 4px;
+}
+.db-trend-bar {
+  width: 100%;
+  max-width: 36px;
+  min-height: 2px;
+  border: 2px solid var(--black);
+  transition: height 400ms ease-out;
+}
+.db-trend-count {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 11px;
+}
+.db-trend-labels {
+  display: flex;
+  gap: 6px;
+  padding: 4px 4px 0;
+}
+.db-trend-labels span {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+@media (min-width: 768px) {
+  .db-trend-chart {
+    height: 150px;
+  }
+  .db-trend-bar {
+    max-width: 48px;
+  }
+}

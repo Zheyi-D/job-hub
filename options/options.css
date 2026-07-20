@@ -1,0 +1,198 @@
+/* ================================================================
+   JobHub — Options Page Styles (Neo-Brutalist)
+   ================================================================ */
+
+body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.opt-header {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: var(--border);
+}
+.opt-header h1 {
+  font-size: 22px;
+}
+@media (min-width: 768px) {
+  body { padding: 24px; }
+  .opt-header { margin-bottom: 28px; padding-bottom: 16px; border-bottom: var(--border-desktop); }
+  .opt-header h1 { font-size: 28px; }
+}
+
+.opt-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Card spacing in options */
+.opt-main .card {
+  margin-bottom: 0;
+}
+.opt-main .card h2 {
+  margin-bottom: 14px;
+}
+
+/* Actions row */
+.opt-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+
+/* Note text */
+.opt-note {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 6px 0;
+  line-height: 1.5;
+}
+
+/* Count badge */
+.opt-count {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* Guide */
+.opt-guide ol {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+.opt-guide li {
+  font-family: var(--font-body);
+  font-size: 13px;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+.opt-guide code {
+  background: var(--yellow);
+  padding: 1px 4px;
+  font-size: 12px;
+}
+.opt-guide summary {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+/* Field requirements table */
+.opt-field-req {
+  margin: 10px 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+.opt-field-req table {
+  width: 100%;
+  border-collapse: collapse;
+  border: var(--border);
+  margin-top: 6px;
+}
+.opt-field-req th,
+.opt-field-req td {
+  padding: 6px 10px;
+  text-align: left;
+  border: 1px solid var(--black);
+  font-size: 12px;
+}
+.opt-field-req th {
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-heading);
+  font-weight: 900;
+}
+
+/* Advanced field mapping */
+.opt-advanced {
+  margin: 12px 0;
+}
+.opt-advanced summary {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+}
+.opt-map-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 2px solid var(--black);
+  background: var(--bg);
+}
+
+/* History list */
+.opt-history {
+  max-height: 320px;
+  overflow-y: auto;
+}
+.opt-empty {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 16px;
+  text-align: center;
+}
+.opt-history-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--black);
+  font-size: 13px;
+}
+.opt-history-item:last-child {
+  border-bottom: none;
+}
+.opt-history-time {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  width: 110px;
+}
+.opt-history-who {
+  flex: 1;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Sync badges */
+.opt-badge-synced {
+  background: var(--green);
+  color: var(--black);
+}
+.opt-badge-local-only {
+  background: var(--yellow);
+  color: var(--black);
+}
+
+/* Footer */
+.opt-footer {
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 16px 0;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .opt-field-req th {
+    background: var(--black);
+    color: var(--white);
+  }
+}

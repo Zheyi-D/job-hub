@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>JobHub · 设置</title>
+  <link rel="stylesheet" href="../lib/design-system.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <header class="opt-header">
+    <h1>⚙ JobHub · 设置</h1>
+  </header>
+
+  <main class="opt-main">
+
+    <!-- AI Configuration — 顶部最显眼位置 -->
+    <section class="card opt-ai-top">
+      <h2>🤖 AI 配置</h2>
+      <p class="opt-note">配置后可解锁 AI 简历解析、智能字段匹配。支持 DeepSeek / Kimi / 豆包。</p>
+      <label class="field"><span>启用</span></label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:10px;">
+        <input type="checkbox" id="aiEnabled" style="width:20px;height:20px;">
+        <span style="font-size:14px;font-weight:700;">开启 AI 辅助</span>
+      </label>
+      <label class="field"><span>服务商</span>
+        <select class="select" id="aiProvider">
+          <option value="deepseek">DeepSeek</option>
+          <option value="kimi">Kimi (月之暗面)</option>
+          <option value="doubao">豆包 (字节)</option>
+          <option value="custom">自定义</option>
+        </select>
+      </label>
+      <label class="field"><span>API Key</span>
+        <input class="input" id="aiApiKey" type="password" placeholder="sk-xxxxxxxx" autocomplete="off">
+      </label>
+      <label class="field"><span>Base URL <small>(选填)</small></span>
+        <input class="input" id="aiEndpoint" type="text" placeholder="自动根据服务商填充" autocomplete="off">
+      </label>
+      <label class="field"><span>Model <small>(选填)</small></span>
+        <input class="input" id="aiModel" type="text" placeholder="自动根据服务商填充">
+      </label>
+      <div class="opt-actions">
+        <button class="btn btn-primary" id="btnSaveAi">保存配置</button>
+        <button class="btn" id="btnTestAi">测试连接</button>
+      </div>
+      <div class="msg hidden" id="aiMsg"></div>
+      <p class="opt-note" style="margin-top:6px;">🔒 API Key 仅保存在本机，仅用于向所选服务商发送请求。</p>
+    </section>
+
+    <!-- Update notification -->
+    <section class="card hidden" id="optUpdateCard">
+      <h2>🆕 发现新版本 <span id="optUpdateVersion"></span></h2>
+      <div id="optUpdateBody" class="opt-note"></div>
+      <div class="opt-actions">
+        <a id="optUpdateLink" class="btn" href="#" target="_blank">📖 查看更新详情</a>
+        <button class="btn" id="optUpdateDismiss">稍后再说</button>
+      </div>
+      <p class="opt-note">更新方法：下载最新 ZIP → 解压覆盖 → chrome://extensions 点刷新图标。</p>
+    </section>
+
+    <!-- Setup guide -->
+    <details class="card opt-guide">
+      <summary>📖 首次配置指南（点击展开）</summary>
+      <ol>
+        <li>打开 <a href="https://open.feishu.cn" target="_blank">飞书开放平台</a> → 开发者后台 → <b>创建企业自建应用</b>；在"凭证与基础信息"页复制 <b>App ID</b> 和 <b>App Secret</b>。</li>
+        <li>应用的"权限管理"页搜索并开通 <code>bitable:app</code>（查看、编辑和管理多维表格）。</li>
+        <li><b>创建版本并发布</b>（自己是管理员则自己审批）。⚠ 权限在发布后才生效。</li>
+        <li>在飞书"我的空间"新建<b>多维表格</b>（不要放知识库），按下方"字段要求"建列。</li>
+        <li>打开表格 → 右上角 <b>⋯ → 更多 → 添加文档应用</b> → 搜索你的应用 → 设为<b>可编辑</b>。</li>
+        <li>复制表格的浏览器地址，粘贴到下方 app_token 输入框——会自动解析。</li>
+        <li>点击"测试连接"，看到"✓ 连接成功"即完成。</li>
+      </ol>
+      <div class="opt-field-req">
+        <b>字段要求</b>（列名可在下方"字段映射"中修改）：
+        <table>
+          <tr><th>列名</th><th>类型</th></tr>
+          <tr><td>公司 / 岗位 / 备注</td><td>文本</td></tr>
+          <tr><td>投递时间</td><td>日期（勾选"显示时间"）</td></tr>
+          <tr><td>链接</td><td>超链接</td></tr>
+          <tr><td>状态</td><td>单选：已投递 / 测评 / 笔试 / 一面 / 二面 / 三面 / HR面 / Offer / 已挂 / 已拒绝</td></tr>
+        </table>
+      </div>
+      <p class="opt-note">🔒 App Secret 仅保存在本机浏览器扩展存储中（不云同步、网页无法读取）。</p>
+    </details>
+
+    <!-- Feishu credentials -->
+    <section class="card">
+      <h2>飞书凭证</h2>
+      <label class="field">
+        <span>App ID</span>
+        <input class="input" id="cAppId" type="text" placeholder="cli_xxxxxxxxxx" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>App Secret</span>
+        <input class="input" id="cAppSecret" type="password" placeholder="应用密钥" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>app_token <small>（可直接粘贴多维表格完整链接）</small></span>
+        <input class="input" id="cAppToken" type="text" placeholder="bascnxxxxxxxx 或 https://xxx.feishu.cn/base/..." autocomplete="off">
+      </label>
+      <label class="field">
+        <span>table_id</span>
+        <input class="input" id="cTableId" type="text" placeholder="tblxxxxxxxx" autocomplete="off">
+      </label>
+
+      <details class="opt-advanced">
+        <summary>高级：字段映射（表格列名与默认不同时才需修改）</summary>
+        <div class="opt-map-grid">
+          <label class="field"><span>公司列名</span><input class="input" id="mCompany" type="text" placeholder="公司"></label>
+          <label class="field"><span>岗位列名</span><input class="input" id="mPosition" type="text" placeholder="岗位"></label>
+          <label class="field"><span>投递时间列名</span><input class="input" id="mAppliedAt" type="text" placeholder="投递时间"></label>
+          <label class="field"><span>链接列名</span><input class="input" id="mLink" type="text" placeholder="链接"></label>
+          <label class="field"><span>状态列名</span><input class="input" id="mStatus" type="text" placeholder="状态"></label>
+          <label class="field"><span>备注列名</span><input class="input" id="mNote" type="text" placeholder="备注"></label>
+        </div>
+      </details>
+
+      <div class="opt-actions">
+        <button class="btn btn-primary" id="btnSaveConfig">保存配置</button>
+        <button class="btn" id="btnTest">测试连接</button>
+      </div>
+      <div class="msg hidden" id="configMsg"></div>
+    </section>
+
+    <!-- History -->
+    <section class="card">
+      <h2>本地投递历史 <span id="historyCount" class="opt-count"></span></h2>
+      <div class="opt-actions">
+        <button class="btn" id="btnExport">导出 JSON</button>
+        <button class="btn btn-danger" id="btnClear">清空历史</button>
+      </div>
+      <div class="msg hidden" id="historyMsg"></div>
+      <div id="historyList" class="opt-history"></div>
+    </section>
+
+    <!-- Resume data management (NEW) -->
+    <section class="card">
+      <h2>简历数据管理</h2>
+      <p class="opt-note">将简历数据导出为 JSON 文件备份，或从文件导入。支持在不同设备间迁移。</p>
+      <div class="opt-actions">
+        <button class="btn" id="btnExportResume">导出简历 JSON</button>
+        <button class="btn" id="btnImportResume">导入简历 JSON</button>
+        <input type="file" id="resumeFileInput" accept=".json" style="display:none;">
+      </div>
+      <div class="msg hidden" id="resumeMsg"></div>
+    </section>
+
+    <!-- Reset all -->
+    <section class="card">
+      <h2>初始化</h2>
+      <p class="opt-note">清空所有本地数据（投递历史、草稿、飞书凭证、简历数据），恢复为刚安装的默认状态。<b>不会删除</b>飞书表格中已同步的数据。</p>
+      <div class="opt-actions">
+        <button class="btn btn-danger" id="btnResetAll">初始化（恢复默认状态）</button>
+      </div>
+      <div class="msg hidden" id="resetMsg"></div>
+    </section>
+
+    <footer class="opt-footer">
+      © 2026 <a href="https://github.com/Zheyi-D" target="_blank">Zheyi-D</a> · <a href="mailto:dddzzzyyy@agent.qq.com">dddzzzyyy@agent.qq.com</a>
+    </footer>
+  </main>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>

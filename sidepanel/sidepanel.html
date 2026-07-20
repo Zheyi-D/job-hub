@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../lib/design-system.css">
+  <link rel="stylesheet" href="sidepanel.css">
+  <link rel="stylesheet" href="resume-fill.css">
+  <link rel="stylesheet" href="job-tracker.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <script src="../vendor/jszip.min.js"></script>
+</head>
+<body>
+
+  <!-- Tab Bar -->
+  <nav class="tab-bar" id="tabBar">
+    <button class="tab-btn active" data-tab="resume-fill">
+      <span>📝</span> 简历填充
+    </button>
+    <button class="tab-btn" data-tab="job-tracker">
+      <span>📋</span> 投递追踪
+    </button>
+    <button class="tab-btn" data-tab="dashboard">
+      <span>📊</span> 看板
+    </button>
+    <div class="tab-bar-actions">
+      <button class="btn btn-sm" id="jhBtnHelp" title="说明">ℹ</button>
+      <button class="btn btn-sm" id="jhBtnOptions" title="设置">⚙</button>
+    </div>
+  </nav>
+
+  <!-- Panel: Resume Fill -->
+  <div class="tab-panel active" id="panel-resume-fill">
+    <!-- Toolbar -->
+    <div class="rf-toolbar">
+      <div class="rf-profile-selector">
+        <span class="rf-profile-label">简历</span>
+        <select id="rfProfileSelect" class="select" style="width:auto;flex:1;">
+          <option>我的简历</option>
+        </select>
+        <button class="btn btn-sm" id="rfProfileMenu" title="更多操作">⋯</button>
+      </div>
+      <div class="rf-toolbar-actions">
+        <button class="btn btn-sm" id="rfAiBtn" title="AI 填简历">🤖 AI</button>
+        <button class="btn btn-sm" id="rfModeToggle">✏️ 编辑</button>
+        <button class="btn btn-sm btn-danger" id="rfResetBtn">↺ 重置</button>
+      </div>
+    </div>
+
+    <!-- (🔍 扫描按钮已隐藏，代码保留) -->
+
+    <!-- Focus hint -->
+    <div class="rf-focus-hint" id="rfFocusHint">👆 请先在网页上点击要填入的输入框</div>
+
+    <!-- Profile management dropdown -->
+    <div class="rf-profile-menu hidden" id="rfProfileMenuPanel">
+      <div class="rf-profile-menu-title">管理简历</div>
+      <button class="rf-profile-menu-item" data-action="new" style="font-weight:700;">➕ 新建一份简历</button>
+      <hr>
+      <button class="rf-profile-menu-item" data-action="rename">✏️ 重命名当前简历</button>
+      <button class="rf-profile-menu-item" data-action="duplicate">📋 复制当前简历</button>
+      <button class="rf-profile-menu-item" data-action="delete" style="color:var(--pink);">🗑 删除当前简历</button>
+    </div>
+
+    <!-- AI / Upload Modal -->
+    <div class="rf-modal-overlay hidden" id="rfAiModal">
+      <div class="rf-modal" style="max-width:480px;">
+        <div class="rf-modal-header">
+          <h3>🤖 AI 填简历</h3>
+          <button class="btn btn-sm" id="rfAiModalClose">×</button>
+        </div>
+        <div class="rf-modal-body">
+
+          <!-- Section 1: 自动解析（需 API Key） -->
+          <div id="rfAiPathUpload" class="rf-ai-section">
+            <h4 class="rf-ai-section-title">🔄 自动解析（需 API Key）</h4>
+            <p class="rf-modal-desc">上传简历文件或粘贴文本，AI 自动识别并填充。</p>
+
+            <label class="field"><span>上传文件（仅支持 .docx）</span></label>
+            <div class="rf-file-drop" id="rfFileDrop">
+              <span>拖拽 .docx 文件到此处或点击选择</span>
+              <input type="file" id="rfFileInput" accept=".docx" style="display:none;">
+            </div>
+            <div id="rfFileInfo" class="hidden" style="margin:8px 0;font-size:12px;"></div>
+
+            <p style="text-align:center;font-size:11px;color:var(--text-secondary);margin:8px 0;">— 或粘贴简历文本 —</p>
+            <textarea class="textarea" id="rfPasteText" rows="4" placeholder="从简历文件复制粘贴全文..."></textarea>
+
+            <button class="btn btn-primary" id="rfAiParse" style="width:100%;margin-top:8px;">🚀 开始解析</button>
+            <div id="rfAiProgress" class="hidden" style="padding:12px;font-size:12px;"></div>
+            <div class="msg hidden" id="rfAiMsg"></div>
+
+            <div id="rfAiPreview" class="hidden" style="margin-top:10px;">
+              <div class="rf-modal-desc">✓ 识别到以下信息：</div>
+              <div id="rfAiPreviewList" style="max-height:200px;overflow-y:auto;font-size:12px;"></div>
+              <div class="opt-actions" style="margin-top:10px;">
+                <button class="btn btn-success" id="rfAiApply">应用到当前简历</button>
+                <button class="btn" id="rfAiApplyNew">创建新简历</button>
+                <button class="btn btn-sm" id="rfAiReparse">🔄 重新解析</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: 外部 AI 助手（无需 API Key） -->
+          <div id="rfAiPathLink" class="rf-ai-section">
+            <h4 class="rf-ai-section-title">🔗 使用外部 AI 助手（无需 API Key）</h4>
+            <p class="rf-modal-desc">上传简历文件到下方任一 AI 平台，配合提示词让 AI 帮你生成结构化数据。</p>
+
+            <div class="rf-ai-platforms">
+              <button class="btn btn-sm rf-ext-btn" data-url="https://www.doubao.com/chat/">豆包</button>
+              <button class="btn btn-sm rf-ext-btn" data-url="https://chat.deepseek.com/">DeepSeek</button>
+              <button class="btn btn-sm rf-ext-btn" data-url="https://kimi.moonshot.cn/">Kimi</button>
+              <button class="btn btn-sm rf-ext-btn" data-url="https://chat.openai.com/">ChatGPT</button>
+            </div>
+
+            <p class="rf-modal-desc" style="margin-top:8px;">使用方法：打开 AI → 上传简历文件 → 粘贴下方提示词 → 把 AI 返回的 JSON 贴回来。</p>
+
+            <div class="rf-ai-prompt" id="rfAiPromptArea">
+              <pre id="rfAiPromptText"></pre>
+            </div>
+            <button class="btn btn-sm" id="rfAiCopyPromptBtn" style="width:100%;">📋 复制提示词</button>
+
+            <label class="field" style="margin-top:10px;"><span>把 AI 返回的 JSON 粘贴到这里</span></label>
+            <textarea class="textarea" id="rfAiJsonInput" rows="5" placeholder='粘贴 AI 返回的 JSON'></textarea>
+            <div class="opt-actions">
+              <button class="btn btn-success" id="rfAiLinkApply">应用到当前简历</button>
+              <button class="btn" id="rfAiLinkApplyNew">创建新简历</button>
+            </div>
+            <div class="msg hidden" id="rfAiLinkMsg"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Category & field list -->
+    <div id="rfCategories"></div>
+
+    <!-- Add category button (edit mode only) -->
+    <button class="btn rf-add-cat hidden" id="rfAddCatBtn">+ 添加分类</button>
+
+    <!-- Toast -->
+    <div class="toast" id="rfToast"></div>
+  </div>
+
+  <!-- Panel: Job Tracker -->
+  <div class="tab-panel" id="panel-job-tracker">
+    <!-- Setup guide (shown when feishu not configured) -->
+    <div class="jt-view hidden" id="jtViewSetup">
+      <div class="empty-state">
+        <span class="empty-icon">🔗</span>
+        <span class="empty-title">连接飞书多维表格</span>
+        <span class="empty-desc">首次使用需要配置飞书凭证，配置页内有完整图文步骤。</span>
+        <button class="btn btn-primary" id="jtBtnOpenOptions">去配置</button>
+      </div>
+    </div>
+
+    <!-- Main form (shown when configured) -->
+    <div class="jt-view hidden" id="jtViewForm">
+      <!-- Update banner -->
+      <div class="banner hidden" id="jtUpdateBanner">
+        <div>🆕 发现新版本 <strong id="jtUpdateVersion"></strong></div>
+        <div id="jtUpdateBody"></div>
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+          <a id="jtUpdateLink" href="#" target="_blank">📖 查看详情</a>
+          <button class="btn btn-sm" id="jtUpdateDismiss">×</button>
+        </div>
+      </div>
+
+      <!-- Duplicate banner -->
+      <div class="banner hidden" id="jtDupBanner"></div>
+
+      <!-- Scrape controls -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <h2 class="section-title" style="margin:0;border:none;padding:0;">📋 记录投递</h2>
+        <button class="btn btn-sm" id="jtBtnRescrape">↻ 重新抓取</button>
+      </div>
+
+      <!-- Form fields -->
+      <label class="field">
+        <span>公司</span>
+        <input class="input" id="jtCompany" type="text" placeholder="公司名称" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>岗位</span>
+        <input class="input" id="jtPosition" type="text" placeholder="岗位名称" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>投递时间</span>
+        <input class="input" id="jtTime" type="datetime-local">
+      </label>
+      <label class="field">
+        <span>链接</span>
+        <input class="input" id="jtUrl" type="url" placeholder="https://" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>状态</span>
+        <select class="select" id="jtStatus"></select>
+      </label>
+      <label class="field">
+        <span>备注</span>
+        <textarea class="textarea" id="jtNote" rows="2" placeholder="选填"></textarea>
+      </label>
+
+      <!-- Messages -->
+      <div class="msg hidden" id="jtMsg"></div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button class="btn btn-primary" id="jtBtnSave" style="flex:1;">保存到飞书</button>
+        <button class="btn hidden" id="jtBtnSaveLocal" style="flex:1;">仅保存到本地</button>
+      </div>
+
+      <!-- Hint + settings link -->
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span id="jtScrapeHint" style="font-family:var(--font-body);font-size:12px;color:var(--text-secondary);"></span>
+        <a href="#" id="jtLinkOptions">设置</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: Dashboard -->
+  <div class="tab-panel" id="panel-dashboard">
+    <!-- Populated by dashboard.js -->
+  </div>
+
+  <!-- Footer -->
+  <footer class="jh-footer">
+    <div class="jh-footer-copy">© 2026 <strong>JobHub</strong> by <a href="https://github.com/Zheyi-D" target="_blank">Zheyi-D</a></div>
+  </footer>
+
+  <!-- Help Modal -->
+  <div class="rf-modal-overlay hidden" id="jhHelpModal">
+    <div class="rf-modal">
+      <div class="rf-modal-header">
+        <h3>ℹ 关于 JobHub</h3>
+        <button class="btn btn-sm" id="jhHelpClose">×</button>
+      </div>
+      <div class="rf-modal-body jh-help-body">
+        <p><strong>JobHub</strong> 帮你做三件事：<b>填简历、记投递、看数据</b>。</p>
+
+        <h4>📝 简历填充 — 把内容一键填进网页表单</h4>
+        <p>投简历时打开侧边栏，你的简历信息（姓名、学校、经历等）都在这。在网页上<b>点一下想填的输入框</b>，再点侧边栏里对应的字段，内容就自动填进去了。</p>
+        
+        <p>点 <b>「🤖 AI」</b>可以上传简历文件（Word/PDF/文本），AI 自动识别内容并填好。也支持粘贴简历文本或跳转到 DeepSeek、豆包、Kimi 用外部 AI。AI 功能需在<b>设置页</b>配置 API Key（支持 DeepSeek / Kimi / 豆包）。</p>
+        <p>点 <b>「✏️ 编辑」</b>可修改简历内容、增删字段、拖拽排序，改完点 <b>「💾 保存」</b>。左上角下拉框可<b>创建多份简历</b>（比如投产品方向和投技术方向各一份），点旁边 ⚙ 管理。</p>
+
+        <h4>📋 投递追踪 — 记录投递并同步到飞书</h4>
+        <p>打开岗位页面，切换到投递追踪 Tab，插件会自动抓取<b>公司名、岗位、链接</b>。核对无误后点 <b>「保存到飞书」</b>，就写进你的飞书多维表格了。</p>
+        <p>时间默认当前、状态默认「已投递」，都可以改。同一个链接不会重复记录。切换网页标签时会自动识别新页面。</p>
+        <p>需要在<b>设置页</b>配置飞书应用凭证才能同步，步骤见设置页的「首次配置指南」。</p>
+
+        <h4>📊 看板 — 投递数据一目了然</h4>
+        <p>自动统计：<b>总投递数、进行中的、面试中的、拿到 Offer 的数量</b>，还有各状态的分布图和近 7 天趋势。数据来自投递追踪记录，不需额外维护。</p>
+
+        <h4>⚙ 设置页</h4>
+        <p>设置页包含 AI API Key 配置、飞书凭证、投递历史管理、简历数据导入导出等。点击底部 <b>「⚙ 设置」</b>打开。</p>
+
+        <p>联系：<a href="mailto:dddzzzyyy@agent.qq.com">dddzzzyyy@agent.qq.com</a> · <a href="https://github.com/Zheyi-D/job-hub/issues" target="_blank">反馈问题</a></p>
+
+        <h4>🗑 初始化所有数据</h4>
+        <p style="color:var(--pink);">此操作将清空所有简历数据、投递历史、草稿和配置，恢复为刚安装的默认状态。<b>不可恢复。</b></p>
+        <button class="btn btn-danger" id="jhResetAll" style="width:100%;">初始化所有数据</button>
+
+        <p class="jh-help-version">JobHub v1.0.0 · MIT © 2026 Zheyi-D</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>
