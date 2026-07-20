@@ -13,19 +13,6 @@ input.jt-low-confidence,
   color: var(--black) !important;
 }
 
-/* Update banner specifics */
-#jtUpdateBanner {
-  font-family: var(--font-body);
-  font-size: 12px;
-}
-#jtUpdateBanner .update-body {
-  font-size: 11px;
-  color: var(--text-secondary);
-  margin-top: 4px;
-  max-height: 80px;
-  overflow-y: auto;
-}
-
 /* Form field compact spacing in side panel */
 #panel-job-tracker .field {
   margin-bottom: 8px;

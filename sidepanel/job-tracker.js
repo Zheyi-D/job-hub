@@ -7,7 +7,7 @@ import { getConfig, isConfigComplete, findDuplicate, getDraft, saveDraft, clearD
 import { STATUS_OPTIONS } from '../lib/constants.js';
 
 // ============ Module State ============
-let container, pageTitle, dirty, dismissedVersion;
+let container, pageTitle, dirty;
 let tabActivatedListener, tabUpdatedListener;
 
 const FORM_IDS = ['jtCompany', 'jtPosition', 'jtTime', 'jtUrl', 'jtStatus', 'jtNote'];
@@ -60,11 +60,6 @@ export async function init(containerEl) {
   };
   chrome.tabs.onActivated.addListener(tabActivatedListener);
   chrome.tabs.onUpdated.addListener(tabUpdatedListener);
-
-  // Update check
-  showUpdateIfAvailable();
-  const dismissBtn = $('jtUpdateDismiss');
-  if (dismissBtn) dismissBtn.addEventListener('click', () => dismissUpdate());
 }
 
 export function destroy() {
@@ -305,26 +300,3 @@ function toLocalInputValue(d) {
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// ============ Update ============
-async function showUpdateIfAvailable() {
-  const resp = await chrome.runtime.sendMessage({ type: 'JT_CHECK_UPDATE' });
-  if (!resp || !resp.hasUpdate || !resp.info) return;
-  if (resp.info.version === dismissedVersion) return;
-  const banner = $('jtUpdateBanner');
-  $('jtUpdateVersion').textContent = 'v' + resp.info.version;
-  const body = (resp.info.body || '').replace(/\r/g, '').trim();
-  $('jtUpdateBody').textContent = body.length > 200 ? body.slice(0, 200) + '…' : body;
-  const link = $('jtUpdateLink');
-  if (link) link.href = resp.info.url || '#';
-  banner.classList.remove('hidden');
-}
-
-async function dismissUpdate() {
-  const resp = await chrome.runtime.sendMessage({ type: 'JT_CHECK_UPDATE' });
-  if (resp && resp.info) {
-    dismissedVersion = resp.info.version;
-    await chrome.runtime.sendMessage({ type: 'JT_DISMISS_UPDATE', version: resp.info.version });
-  }
-  const banner = $('jtUpdateBanner');
-  if (banner) banner.classList.add('hidden');
-}
