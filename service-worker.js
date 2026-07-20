@@ -183,8 +183,8 @@ async function dismissUpdate(version) {
   return { ok: true };
 }
 
-// 清除旧缓存再检查，避免残留数据误触发更新提示
-chrome.storage.local.remove(STORAGE_KEYS.updateInfo).then(() => checkUpdate());
+// 启动检查 + 定时检查
+checkUpdate();
 chrome.alarms.create('jt-check-update', { periodInMinutes: UPDATE_CHECK_INTERVAL_MIN });
 chrome.alarms.onAlarm.addListener(alarm => {
   if (alarm.name === 'jt-check-update') checkUpdate();
