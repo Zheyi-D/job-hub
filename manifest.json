@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "JobHub",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "简历一键填充 + 投递记录追踪 + 求职数据看板，同步飞书多维表格",
   "author": "Zheyi-D",
 
