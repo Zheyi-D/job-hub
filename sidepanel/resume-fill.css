@@ -152,9 +152,52 @@
 .rf-category-panel.rf-collapsed .rf-field-list { display: none; }
 .rf-category-panel.rf-collapsed .rf-group-card { display: none; }
 
-/* Field list */
+/* Fill mode compact button */
+.rf-fill-btn {
+  display: inline-block;
+  padding: 4px 8px;
+  margin: 2px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 12px;
+  text-align: center;
+  border: var(--border);
+  background: var(--white);
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--transition);
+  box-shadow: 2px 2px 0 0 rgba(0,0,0,1);
+}
+.rf-fill-btn:hover {
+  background: var(--yellow);
+  color: var(--black);
+  box-shadow: none;
+  transform: translate(1px, 1px);
+}
+.rf-fill-btn.rf-filled {
+  background: var(--green) !important;
+  color: var(--black);
+}
+.rf-fill-btn.rf-fill-error {
+  background: var(--pink) !important;
+  color: var(--white);
+  animation: rf-shake 0.3s ease;
+}
+
+/* Group card in fill mode — compact flex wrap */
+.rf-group-card .rf-fill-btn {
+  padding: 3px 7px;
+  font-size: 11px;
+}
+
+/* Field list — fill mode: compact tag layout */
 .rf-field-list {
-  padding: 6px 0;
+  padding: 4px 6px;
+}
+.rf-field-list-fill {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 4px 6px;
 }
 
 /* Group card (multi-section internships/projects) */

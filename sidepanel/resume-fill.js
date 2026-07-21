@@ -284,41 +284,75 @@ function createCategoryPanel(cat, catIdx) {
   header.appendChild(actions);
   panel.appendChild(header);
 
-  // Field list with card grouping
+  // Field list — fill mode: compact buttons; edit mode: full rows with card grouping
   const fieldList = document.createElement('div');
-  fieldList.className = 'rf-field-list';
+  fieldList.className = isEditMode ? 'rf-field-list' : 'rf-field-list-fill';
 
-  const groups = groupFields(cat.fields);
-  if (groups.length <= 1) {
-    cat.fields.forEach((field, i) => fieldList.appendChild(createFieldRow(cat, catIdx, field, i)));
-  } else {
-    groups.forEach(grp => {
-      const card = document.createElement('div');
-      card.className = 'rf-group-card';
-      if (grp.label) {
-        const cardHead = document.createElement('div');
-        cardHead.className = 'rf-group-card-head';
-        cardHead.textContent = grp.label;
-        if (isEditMode) {
-          cardHead.title = '点击编辑标题';
-          cardHead.addEventListener('click', () => {
-            const newVal = prompt('修改标题', grp.label);
-            if (newVal && newVal.trim()) {
-              grp.fields[0].value = newVal.trim();
-              grp.label = newVal.trim();
-              cardHead.textContent = newVal.trim();
-              saveData();
-            }
-          });
+  if (!isEditMode) {
+    // Fill mode: only show non-empty fields as compact tag buttons
+    const groups = groupFields(cat.fields);
+    if (groups.length <= 1) {
+      cat.fields.forEach((field, i) => {
+        if (field.value && field.value.trim()) {
+          fieldList.appendChild(createFillButton(cat, catIdx, field, i));
         }
-        card.appendChild(cardHead);
-      }
-      grp.fields.forEach(f => {
-        const idx = cat.fields.indexOf(f);
-        card.appendChild(createFieldRow(cat, catIdx, f, idx));
       });
-      fieldList.appendChild(card);
-    });
+    } else {
+      groups.forEach(grp => {
+        const hasContent = grp.fields.some(f => f.value && f.value.trim());
+        if (!hasContent) return;
+        const card = document.createElement('div');
+        card.className = 'rf-group-card';
+        card.style.padding = '4px';
+        if (grp.label) {
+          const cardHead = document.createElement('div');
+          cardHead.className = 'rf-group-card-head';
+          cardHead.textContent = grp.label;
+          card.appendChild(cardHead);
+        }
+        grp.fields.forEach(f => {
+          const idx = cat.fields.indexOf(f);
+          if (f.value && f.value.trim()) {
+            card.appendChild(createFillButton(cat, catIdx, f, idx));
+          }
+        });
+        fieldList.appendChild(card);
+      });
+    }
+  } else {
+    // Edit mode: show all fields with full rows (current behavior)
+    const groups = groupFields(cat.fields);
+    if (groups.length <= 1) {
+      cat.fields.forEach((field, i) => fieldList.appendChild(createFieldRow(cat, catIdx, field, i)));
+    } else {
+      groups.forEach(grp => {
+        const card = document.createElement('div');
+        card.className = 'rf-group-card';
+        if (grp.label) {
+          const cardHead = document.createElement('div');
+          cardHead.className = 'rf-group-card-head';
+          cardHead.textContent = grp.label;
+          if (isEditMode) {
+            cardHead.title = '点击编辑标题';
+            cardHead.addEventListener('click', () => {
+              const newVal = prompt('修改标题', grp.label);
+              if (newVal && newVal.trim()) {
+                grp.fields[0].value = newVal.trim();
+                grp.label = newVal.trim();
+                cardHead.textContent = newVal.trim();
+                saveData();
+              }
+            });
+          }
+          card.appendChild(cardHead);
+        }
+        grp.fields.forEach(f => {
+          const idx = cat.fields.indexOf(f);
+          card.appendChild(createFieldRow(cat, catIdx, f, idx));
+        });
+        fieldList.appendChild(card);
+      });
+    }
   }
 
   panel.appendChild(fieldList);
@@ -398,6 +432,17 @@ function createFieldRow(cat, catIdx, field, fieldIdx) {
   }
 
   return row;
+}
+
+// Fill mode: compact button showing only the label
+function createFillButton(cat, catIdx, field, fieldIdx) {
+  const btn = document.createElement('button');
+  btn.className = 'rf-fill-btn';
+  // Show label only — no value visible in fill mode
+  btn.textContent = field.label;
+  btn.title = field.value; // visible on hover
+  btn.addEventListener('click', () => handleFill(field.value, btn));
+  return btn;
 }
 
 // ============ Drag & Drop ============
