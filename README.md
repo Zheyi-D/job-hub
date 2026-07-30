@@ -1,6 +1,7 @@
 # JobHub — 求职助手浏览器扩展
 
 一键填充简历 + 投递记录追踪 + 求职数据看板，同步飞书多维表格。
+已上架[微软拓展商店](https://microsoftedge.microsoft.com/addons/detail/jobhub/gfceioocaefhnbgbkcmmpbdpgeajejao)
 
 ## 功能
 
