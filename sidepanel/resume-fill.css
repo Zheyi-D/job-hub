@@ -77,26 +77,6 @@
   }
 }
 
-/* Focus hint */
-.rf-focus-hint {
-  font-family: var(--font-body);
-  font-size: 11px;
-  padding: 6px 10px;
-  margin-bottom: 10px;
-  border: 2px solid var(--black);
-  background: var(--bg);
-  color: var(--text-secondary);
-  flex-shrink: 0;
-}
-.rf-focus-hint.rf-focus-ready {
-  background: var(--green);
-  color: var(--black);
-}
-.rf-focus-hint.rf-focus-error {
-  background: var(--pink);
-  color: var(--white);
-}
-
 /* Add category button */
 .rf-add-cat {
   margin-top: 10px;

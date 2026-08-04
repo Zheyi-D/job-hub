@@ -13,8 +13,8 @@ import { extractTextFromFile, extractTextFromClipboard } from '../lib/file-parse
 import { matchFieldsWithAI } from '../lib/field-matcher.js';
 
 // ============ Module State ============
-let container, profile, profiles, isEditMode, activeTabId, toastTimer, focusInterval;
-let modeToggle, resetBtn, focusHint, toast, categoriesEl;
+let container, profile, profiles, isEditMode, activeTabId, toastTimer;
+let modeToggle, resetBtn, toast, categoriesEl;
 let profileSelect, profileMenuBtn, profileMenuPanel, addCatBtn;
 let aiParsedData = null;  // holds AI parse result for preview
 
@@ -27,7 +27,6 @@ export async function init(containerEl) {
   // Cache DOM refs
   modeToggle     = el('rfModeToggle');
   resetBtn       = el('rfResetBtn');
-  focusHint      = el('rfFocusHint');
   toast          = el('rfToast');
   categoriesEl   = el('rfCategories');
   profileSelect  = el('rfProfileSelect');
@@ -62,13 +61,9 @@ export async function init(containerEl) {
   refreshProfileSelect();
   render();
 
-  // Start focus polling
-  refreshFocusHint();
-  focusInterval = setInterval(refreshFocusHint, 1500);
 }
 
 export function destroy() {
-  if (focusInterval) { clearInterval(focusInterval); focusInterval = null; }
   container = null;
 }
 
@@ -441,7 +436,7 @@ function createFillButton(cat, catIdx, field, fieldIdx) {
   // Show label only — no value visible in fill mode
   btn.textContent = field.label;
   btn.title = field.value; // visible on hover
-  btn.addEventListener('click', () => handleFill(field.value, btn));
+  btn.addEventListener('click', () => handleFill(field.label, field.value, btn));
   return btn;
 }
 
@@ -631,10 +626,10 @@ function deleteCategory(catIdx) {
 }
 
 // ============ Fill Logic ============
-async function handleFill(value, rowEl) {
+async function handleFill(label, value, rowEl) {
   if (!activeTabId) { showToast('无法获取当前页面', 'error'); return; }
   try {
-    const resp = await chrome.tabs.sendMessage(activeTabId, { type: 'FILL', value });
+    const resp = await chrome.tabs.sendMessage(activeTabId, { type: 'FILL', label, value });
     if (resp && resp.success) {
       rowEl.classList.add('rf-filled');
       showToast('✅ 已填入', 'success');
@@ -648,39 +643,6 @@ async function handleFill(value, rowEl) {
     showToast('⚠️ 当前页面不支持填充', 'error');
     rowEl.classList.add('rf-fill-error');
     setTimeout(() => rowEl.classList.remove('rf-fill-error'), 600);
-  }
-}
-
-// ============ Focus Hint ============
-async function refreshFocusHint() {
-  if (!activeTabId) return;
-  try {
-    const resp = await chrome.tabs.sendMessage(activeTabId, { type: 'CHECK_FOCUS' });
-    if (resp && resp.hasFocus) {
-      let info = resp.tag;
-      if (resp.type) info += '[' + resp.type + ']';
-      if (resp.placeholder) info += ' → ' + resp.placeholder;
-      if (resp.id) info += ' #' + resp.id;
-      focusHint.textContent = '📍 已聚焦: ' + info;
-      focusHint.className = 'rf-focus-hint rf-focus-ready';
-    } else {
-      focusHint.textContent = '👆 请先在网页上点击要填入的输入框';
-      focusHint.className = 'rf-focus-hint';
-    }
-  } catch {
-    if (activeTabId) {
-      try {
-        await chrome.scripting.executeScript({
-          target: { tabId: activeTabId },
-          files: ['content/fill-engine.js']
-        });
-        focusHint.textContent = '👆 请先在网页上点击要填入的输入框';
-        focusHint.className = 'rf-focus-hint';
-      } catch {
-        focusHint.textContent = '🔒 当前页面不支持（系统页面）';
-        focusHint.className = 'rf-focus-hint rf-focus-error';
-      }
-    }
   }
 }
 
