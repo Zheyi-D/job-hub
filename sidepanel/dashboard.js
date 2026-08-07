@@ -13,6 +13,12 @@ export async function init(containerEl) {
   currentHistory = await getHistory();
   syncInfo = null;
   render();
+
+  // 自动同步飞书（1 分钟缓存，避免切 Tab 重复请求）
+  const lastSync = syncInfo && syncInfo.fetchedAt ? syncInfo.fetchedAt : 0;
+  if (Date.now() - lastSync > 60000) {
+    await doSync(true);
+  }
 }
 
 export function destroy() {
@@ -106,9 +112,11 @@ function renderEmpty() {
 
 // ============ Sync ============
 
-async function doSync() {
+async function doSync(silent) {
   const syncBtn = container.querySelector('#dbSyncBtn');
-  if (syncBtn) {
+  if (silent) {
+    // 自动同步：静默，不显示加载状态
+  } else if (syncBtn) {
     syncBtn.disabled = true;
     syncBtn.textContent = '⏳ 同步中…';
   }
@@ -134,8 +142,8 @@ async function doSync() {
         syncBtn.disabled = false;
         syncBtn.textContent = '🔄 同步飞书';
       }
-      // Brief toast-like feedback via sync button
-      if (syncBtn) {
+      // Brief toast-like feedback via sync button (only when manual)
+      if (!silent && syncBtn) {
         syncBtn.textContent = '❌ ' + msg;
         setTimeout(() => { syncBtn.textContent = '🔄 同步飞书'; syncBtn.disabled = false; }, 2000);
       }
