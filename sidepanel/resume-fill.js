@@ -13,8 +13,8 @@ import { extractTextFromFile, extractTextFromClipboard } from '../lib/file-parse
 import { matchFieldsWithAI } from '../lib/field-matcher.js';
 
 // ============ Module State ============
-let container, profile, profiles, isEditMode, activeTabId, toastTimer;
-let modeToggle, resetBtn, toast, categoriesEl;
+let container, profile, profiles, isEditMode, isCompactFill, activeTabId, toastTimer;
+let modeToggle, compactToggle, resetBtn, toast, categoriesEl;
 let profileSelect, profileMenuBtn, profileMenuPanel, addCatBtn;
 let aiParsedData = null;  // holds AI parse result for preview
 
@@ -26,6 +26,7 @@ export async function init(containerEl) {
 
   // Cache DOM refs
   modeToggle     = el('rfModeToggle');
+  compactToggle  = el('rfCompactToggle');
   resetBtn       = el('rfResetBtn');
   toast          = el('rfToast');
   categoriesEl   = el('rfCategories');
@@ -34,6 +35,10 @@ export async function init(containerEl) {
   profileMenuPanel = el('rfProfileMenuPanel');
   addCatBtn      = el('rfAddCatBtn');
   // AI & batch scan refs (may be null if elements don't exist yet — guarded in handlers)
+
+  // Load compact fill preference
+  const stored = await chrome.storage.local.get('af_compactFill');
+  isCompactFill = stored.af_compactFill !== false; // default true (compact)
 
   // Load data
   profiles = await getProfiles();
@@ -89,6 +94,7 @@ async function switchProfile(id) {
 // ============ Event Bindings ============
 function bindEvents() {
   modeToggle.addEventListener('click', toggleMode);
+  compactToggle.addEventListener('click', toggleCompactFill);
   resetBtn.addEventListener('click', resetProfile);
 
   profileSelect.addEventListener('change', () => switchProfile(profileSelect.value));
@@ -279,48 +285,39 @@ function createCategoryPanel(cat, catIdx) {
   header.appendChild(actions);
   panel.appendChild(header);
 
-  // Field list — fill mode: compact buttons; edit mode: full rows with card grouping
+  // Field list — three modes: compact fill / full fill / edit
   const fieldList = document.createElement('div');
-  fieldList.className = isEditMode ? 'rf-field-list' : 'rf-field-list-fill';
+  fieldList.className = (!isEditMode && isCompactFill) ? 'rf-field-list-fill' : 'rf-field-list';
 
-  if (!isEditMode) {
-    // Fill mode: only show non-empty fields as compact tag buttons
+  if (!isEditMode && isCompactFill) {
+    // Compact fill: only non-empty fields as tag buttons
     const groups = groupFields(cat.fields);
     if (groups.length <= 1) {
       cat.fields.forEach((field, i) => {
-        if (field.value && field.value.trim()) {
-          fieldList.appendChild(createFillButton(cat, catIdx, field, i));
-        }
+        if (field.value && field.value.trim()) fieldList.appendChild(createFillButton(cat, catIdx, field, i));
       });
     } else {
       groups.forEach(grp => {
-        const hasContent = grp.fields.some(f => f.value && f.value.trim());
-        if (!hasContent) return;
+        if (!grp.fields.some(f => f.value && f.value.trim())) return;
         const card = document.createElement('div');
         card.className = 'rf-group-card';
         card.style.padding = '4px';
-        if (grp.label) {
-          const cardHead = document.createElement('div');
-          cardHead.className = 'rf-group-card-head';
-          cardHead.textContent = grp.label;
-          card.appendChild(cardHead);
-        }
-        grp.fields.forEach(f => {
-          const idx = cat.fields.indexOf(f);
-          if (f.value && f.value.trim()) {
-            card.appendChild(createFillButton(cat, catIdx, f, idx));
-          }
-        });
+        if (grp.label) { const h = document.createElement('div'); h.className = 'rf-group-card-head'; h.textContent = grp.label; card.appendChild(h); }
+        grp.fields.forEach(f => { const idx = cat.fields.indexOf(f); if (f.value && f.value.trim()) card.appendChild(createFillButton(cat, catIdx, f, idx)); });
         fieldList.appendChild(card);
       });
     }
   } else {
-    // Edit mode: show all fields with full rows (current behavior)
+    // Full fill / edit mode: label+value rows
     const groups = groupFields(cat.fields);
+    const showAll = isEditMode; // edit shows all, fill shows only non-empty
     if (groups.length <= 1) {
-      cat.fields.forEach((field, i) => fieldList.appendChild(createFieldRow(cat, catIdx, field, i)));
+      cat.fields.forEach((field, i) => {
+        if (showAll || (field.value && field.value.trim())) fieldList.appendChild(createFieldRow(cat, catIdx, field, i));
+      });
     } else {
       groups.forEach(grp => {
+        if (!showAll && !grp.fields.some(f => f.value && f.value.trim())) return;
         const card = document.createElement('div');
         card.className = 'rf-group-card';
         if (grp.label) {
@@ -331,19 +328,14 @@ function createCategoryPanel(cat, catIdx) {
             cardHead.title = '点击编辑标题';
             cardHead.addEventListener('click', () => {
               const newVal = prompt('修改标题', grp.label);
-              if (newVal && newVal.trim()) {
-                grp.fields[0].value = newVal.trim();
-                grp.label = newVal.trim();
-                cardHead.textContent = newVal.trim();
-                saveData();
-              }
+              if (newVal && newVal.trim()) { grp.fields[0].value = newVal.trim(); grp.label = newVal.trim(); cardHead.textContent = newVal.trim(); saveData(); }
             });
           }
           card.appendChild(cardHead);
         }
         grp.fields.forEach(f => {
           const idx = cat.fields.indexOf(f);
-          card.appendChild(createFieldRow(cat, catIdx, f, idx));
+          if (showAll || (f.value && f.value.trim())) card.appendChild(createFieldRow(cat, catIdx, f, idx));
         });
         fieldList.appendChild(card);
       });
@@ -657,11 +649,25 @@ function toggleMode() {
   if (isEditMode) {
     modeToggle.textContent = '💾 保存';
     modeToggle.className = 'btn btn-sm btn-primary';
+    compactToggle.classList.add('hidden');
   } else {
     modeToggle.textContent = '✏️ 编辑';
     modeToggle.className = 'btn btn-sm';
+    compactToggle.classList.remove('hidden');
+    updateCompactToggleLabel();
   }
   render();
+}
+
+function toggleCompactFill() {
+  isCompactFill = !isCompactFill;
+  chrome.storage.local.set({ af_compactFill: isCompactFill });
+  updateCompactToggleLabel();
+  render();
+}
+
+function updateCompactToggleLabel() {
+  compactToggle.textContent = isCompactFill ? '📋 完整' : '🏷 紧凑';
 }
 
 // ============ Reset ============
