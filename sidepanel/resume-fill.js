@@ -388,7 +388,7 @@ function createFieldRow(cat, catIdx, field, fieldIdx) {
 
   if (!isEditMode) {
     row.classList.add('rf-fill-mode');
-    row.addEventListener('click', () => handleFill(field.value, row));
+    row.addEventListener('click', () => handleFill(field.label, field.value, row));
   } else {
     row.classList.add('rf-edit-mode');
     row.draggable = true;
